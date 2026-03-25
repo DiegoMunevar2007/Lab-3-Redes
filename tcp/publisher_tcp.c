@@ -18,7 +18,7 @@ int main()
     server_addr.sin_port = htons(PORT);
     server_addr.sin_family = AF_INET;
 
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
     {
         printf("Error creando socket\n");
@@ -38,24 +38,21 @@ int main()
     scanf("%s", topic);
 
     // limpiar buffer
-    while (1)
-    {
-        getchar();
+    getchar();
 
-        printf("Ingrese mensaje: ");
-        scanf("%[^\n]", message); // Leer hasta el salto de línea para permitir espacios en el mensaje
+    printf("Ingrese mensaje: ");
+    scanf("%[^\n]", message); // Leer hasta el salto de línea para permitir espacios en el mensaje
 
-        // Se arma el mensaje con formato "PUB topic mensaje"
-        char final_msg[1200];
-        sprintf(final_msg, "PUB %s %s", topic, message); // Se guarda en final_msg a partir de topic y message
+    // Se arma el mensaje con formato "PUB topic mensaje"
+    char final_msg[1200];
+    snprintf(final_msg, sizeof(final_msg), "PUB %s %s\n", topic, message); // Se guarda en final_msg a partir de topic y message
 
-        // Se usa send() y no sendto() porque el socket ya está conectado con connect().
-        // Usar sendto() con dirección explícita en un socket conectado retorna EISCONN en Linux
-        // y el mensaje nunca se envía. send() usa la dirección guardada por connect().
-        send(sockfd, final_msg, strlen(final_msg), 0);
+    // Se usa send() y no sendto() porque el socket ya está conectado con connect().
+    // Usar sendto() con dirección explícita en un socket conectado retorna EISCONN en Linux
+    // y el mensaje nunca se envía. send() usa la dirección guardada por connect().
+    send(sockfd, final_msg, strlen(final_msg), 0);
 
-        printf("Mensaje enviado\n");
-    }
+    printf("Mensaje enviado\n");
 
     close(sockfd);
     return 0;

@@ -1,5 +1,6 @@
+import asyncio
 import socket
-
+import threading
 HOST = "0.0.0.0"
 PORT = 5000
 BUFFER_SIZE = 1024
@@ -12,10 +13,8 @@ topics = {}  # topic -> (IP, puerto)
 
 print(f"Broker TCP escuchando en el puerto {PORT}...")
     
-while True:
-    conn, addr = sock.accept()
-    print(f"Cliente conectado: {addr}")
-    # De pronto thread????? Pq solo está aceptando un cliente a la vez
+    
+def manejar_cliente(conn, addr):
     while True:
         try:
             data = conn.recv(BUFFER_SIZE)
@@ -27,11 +26,9 @@ while True:
 
             if msg.startswith("SUB"):
                 _, topic = msg.split(maxsplit=1)
-                if topic not in topics:
-                    topics[topic] = []
+                topics.setdefault(topic, [])
                 if conn not in topics[topic]:
                     topics[topic].append(conn)
-                print(f"Cliente {addr} suscrito a {topic}")
 
             elif msg.startswith("PUB"):
                 parts = msg.split(maxsplit=2)
@@ -45,9 +42,7 @@ while True:
                         try:
                             subscriber.sendall(message.encode())
                         except:
-                            pass  # cliente muerto
-
-                    print(f"Publicado '{message}' a {len(topics[topic])} suscriptores de {topic}")
+                            pass
 
         except:
             break
@@ -55,8 +50,13 @@ while True:
     print(f"Cliente desconectado: {addr}")
     conn.close()
 
-    # limpiar suscripciones
     for topic in topics:
         if conn in topics[topic]:
             topics[topic].remove(conn)
 
+
+    
+while True:
+    conn, addr = sock.accept()
+    print(f"Cliente conectado: {addr}")
+    threading.Thread(target=manejar_cliente, args=(conn, addr), daemon=True).start()
