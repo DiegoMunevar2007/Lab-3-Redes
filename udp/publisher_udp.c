@@ -44,9 +44,10 @@ int main() {
     char final_msg[1200];
     sprintf(final_msg, "PUB %s %s", topic, message); // Se guarda en final_msg a partir de topic y message
 
-    sendto(sockfd, final_msg, strlen(final_msg), 0,
-           (struct sockaddr *)&server_addr,
-           sizeof(server_addr));
+    // Se usa send() y no sendto() porque el socket ya está conectado con connect().
+    // Usar sendto() con dirección explícita en un socket conectado retorna EISCONN en Linux
+    // y el mensaje nunca se envía. send() usa la dirección guardada por connect().
+    send(sockfd, final_msg, strlen(final_msg), 0);
 
     printf("Mensaje enviado\n");
 
