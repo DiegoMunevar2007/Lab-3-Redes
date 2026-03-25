@@ -5,13 +5,51 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-
-#define BROKER_IP "127.0.0.1"
-#define BROKER_PORT 12345
+#define PORT 5000
 
 int main() {
-    printf("El publicador de UDP está funcionando...\n");
-    while (1){
-        
+    // Gracias https://www.geeksforgeeks.org/computer-networks/udp-client-server-using-connect-c-implementation/ por tanto
+    int sockfd;
+    struct sockaddr_in server_addr;
+
+    bzero(&server_addr, sizeof(server_addr));
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr.sin_port = htons(PORT);
+    server_addr.sin_family = AF_INET;
+
+    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockfd < 0) {
+        printf("Error creando socket\n");
+        return 1;
     }
+
+    if(connect(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0){
+        printf("\n Error : Connect Failed \n");
+        exit(0);
+    }
+
+    char topic[50];
+    char message[1024];
+
+    printf("Ingrese topic: ");
+    scanf("%s", topic);
+
+    // limpiar buffer 
+    getchar();
+
+    printf("Ingrese mensaje: ");
+    scanf("%[^\n]", message); // Leer hasta el salto de línea para permitir espacios en el mensaje
+
+    // Se arma el mensaje con formato "PUB topic mensaje"
+    char final_msg[1200];
+    sprintf(final_msg, "PUB %s %s", topic, message); // Se guarda en final_msg a partir de topic y message
+
+    sendto(sockfd, final_msg, strlen(final_msg), 0,
+           (struct sockaddr *)&server_addr,
+           sizeof(server_addr));
+
+    printf("Mensaje enviado\n");
+
+    close(sockfd);
+    return 0;
 }
