@@ -55,7 +55,7 @@ int main() {
             fflush(stdout);
             continue;
         }
-        buffer[n] = '\0';
+        buffer[n] = '\0'; 
         printf("Mensaje recibido de %s:%d: %s\n",
                inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), buffer);
         fflush(stdout); // Forzar escritura para que el log aparezca de inmediato
