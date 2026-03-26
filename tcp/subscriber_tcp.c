@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define PORT 5000
+#define PORT 8000
 
 int main()
 {

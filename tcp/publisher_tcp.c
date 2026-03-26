@@ -5,7 +5,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-#define PORT 5000
+#define PORT 8000
 
 int main()
 {
@@ -40,19 +40,34 @@ int main()
     // limpiar buffer
     getchar();
 
-    printf("Ingrese mensaje: ");
-    scanf("%[^\n]", message); // Leer hasta el salto de línea para permitir espacios en el mensaje
+    // Permitir múltiples publicaciones al mismo topic mientras está conectado
+    while (1)
+    {
+        printf("Ingrese mensaje (o 'SALIR' para desconectar): ");
+        scanf("%[^\n]", message); // Leer hasta el salto de línea para permitir espacios en el mensaje
 
-    // Se arma el mensaje con formato "PUB topic mensaje"
-    char final_msg[1200];
-    snprintf(final_msg, sizeof(final_msg), "PUB %s %s\n", topic, message); // Se guarda en final_msg a partir de topic y message
+        // Limpiar buffer de entrada
+        getchar();
 
-    // Se usa send() y no sendto() porque el socket ya está conectado con connect().
-    // Usar sendto() con dirección explícita en un socket conectado retorna EISCONN en Linux
-    // y el mensaje nunca se envía. send() usa la dirección guardada por connect().
-    send(sockfd, final_msg, strlen(final_msg), 0);
+        // Verificar si el usuario quiere salir
+        if (strcmp(message, "SALIR") == 0) {
+            break;
+        }
 
-    printf("Mensaje enviado\n");
+        // Se arma el mensaje con formato "PUB topic mensaje"
+        char final_msg[1200];
+        snprintf(final_msg, sizeof(final_msg), "PUB %s %s", topic, message);
+
+        // Se usa send() y no sendto() porque el socket ya está conectado con connect().
+        // Usar sendto() con dirección explícita en un socket conectado retorna EISCONN en Linux
+        // y el mensaje nunca se envía. send() usa la dirección guardada por connect().
+        if (send(sockfd, final_msg, strlen(final_msg), 0) < 0) {
+            printf("Error enviando mensaje\n");
+            break;
+        }
+
+        printf("Mensaje enviado\n");
+    }
 
     close(sockfd);
     return 0;
