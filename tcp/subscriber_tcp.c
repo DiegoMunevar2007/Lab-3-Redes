@@ -63,24 +63,6 @@ int main()
         printf("Mensaje recibido: %s\n", buffer);
     }
 
-    // while (1)
-    // {
-    //     struct sockaddr_in from_addr;
-    //     socklen_t from_len = sizeof(from_addr);
-
-    //     ssize_t n = recvfrom(sockfd, buffer, sizeof(buffer) - 1, 0,
-    //                          (struct sockaddr *)&from_addr,
-    //                          &from_len);
-    //     if (n < 0)
-    //     {
-    //         printf("Error recibiendo mensaje\n");
-    //         break;
-    //     }
-
-    //     buffer[n] = '\0';
-    //     printf("Mensaje recibido: %s\n", buffer);
-    // }
-
     close(sockfd);
     return 0;
 }
