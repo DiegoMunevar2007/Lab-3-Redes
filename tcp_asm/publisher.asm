@@ -21,7 +21,7 @@ SECTION .data
     msg_sent db "Mensaje enviado", 10, 0
 
     fmt_str db "%s", 0
-    fmt_line db "%[^\n]", 0
+    fmt_line db "%[^",10,"]", 0
     fmt_pub db "PUB %s %s", 0
 
     salir_str db "SALIR", 0
