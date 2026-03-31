@@ -14,12 +14,14 @@ extern getchar
 extern exit
 
 SECTION .data
+    ; mensajes que se imprimen en pantalla
     msg_socket_error db "Error creando socket", 10, 0
     msg_connect_error db "Error : Connect Failed", 10, 0
     msg_topic db "Ingrese topic: ", 0
     msg_input db "Ingrese mensaje (o 'SALIR' para desconectar): ", 0
     msg_sent db "Mensaje enviado", 10, 0
 
+    ; formatos para scanf / snprintf
     fmt_str db "%s", 0
     fmt_line db "%[^",10,"]", 0
     fmt_pub db "PUB %s %s", 0
@@ -28,11 +30,12 @@ SECTION .data
     ip_str db "127.0.0.1", 0
 
 SECTION .bss
+    ; variables sin inicializar
     sockfd resd 1
     topic resb 50
     message resb 1024
     final_msg resb 1200
-    server_addr resb 16   ; sockaddr_in
+    server_addr resb 16   ; estructura sockaddr_in
 
 SECTION .text
 
@@ -40,7 +43,7 @@ main:
     push ebp
     mov ebp, esp
 
-    ; bzero(server_addr, 16)
+    ; limpiar server_addr (como memset a 0)
     mov edi, server_addr
     mov ecx, 16
     xor eax, eax
@@ -61,7 +64,7 @@ main:
     add esp, 4
     mov [server_addr + 4], eax
 
-    ; socket(AF_INET, SOCK_STREAM, 0)
+    ; crear socket TCP -> socket(AF_INET, SOCK_STREAM, 0)
     push 0
     push 1
     push 2
@@ -72,7 +75,7 @@ main:
     cmp eax, 0
     jl socket_error
 
-    ; connect(sockfd, &server_addr, 16)
+    ; conectar al servidor
     push 16
     push server_addr
     push dword [sockfd]
@@ -82,35 +85,37 @@ main:
     cmp eax, 0
     jl connect_error
 
-    ; printf("Ingrese topic: ")
+    ; pedir topic al usuario
     push msg_topic
     call printf
     add esp, 4
 
-    ; scanf("%s", topic)
+    ; leer topic con scanf
     push topic
     push fmt_str
     call scanf
     add esp, 8
 
+    ; limpiar salto de linea del buffer
     call getchar
 
 loop_start:
 
-    ; printf input
+    ; pedir mensaje al usuario
     push msg_input
     call printf
     add esp, 4
 
-    ; scanf("%[^\n]", message)
+    ; leer linea completa incluyendo espacios
     push message
     push fmt_line
     call scanf
     add esp, 8
 
+    ; limpiar salto de linea
     call getchar
 
-    ; strcmp(message, "SALIR")
+    ; comparar si el usuario escribió "SALIR"
     push salir_str
     push message
     call strcmp
@@ -119,7 +124,7 @@ loop_start:
     cmp eax, 0
     je end_program
 
-    ; snprintf(final_msg, 1200, "PUB %s %s", topic, message)
+    ; construir mensaje final "PUB topic mensaje"
     push message
     push topic
     push fmt_pub
@@ -128,10 +133,10 @@ loop_start:
     call snprintf
     add esp, 20
 
-    ; send(sockfd, final_msg, strlen...) 
-    ; cheating slightly: reuse snprintf return (length in eax)
+    ; snprintf devuelve la longitud del string en eax
     mov edx, eax
 
+    ; enviar mensaje por socket TCP
     push 0
     push edx
     push final_msg
@@ -142,6 +147,7 @@ loop_start:
     cmp eax, 0
     jl send_error
 
+    ; confirmar envio
     push msg_sent
     call printf
     add esp, 4
@@ -149,6 +155,7 @@ loop_start:
     jmp loop_start
 
 socket_error:
+    ; error creando socket
     push msg_socket_error
     call printf
     add esp, 4
@@ -156,6 +163,7 @@ socket_error:
     jmp cleanup
 
 connect_error:
+    ; error conectando al servidor
     push msg_connect_error
     call printf
     add esp, 4
@@ -163,17 +171,18 @@ connect_error:
     call exit
 
 send_error:
-    ; silently bail like your C version basically does
+    ; si falla send, terminar programa
     jmp end_program
 
 end_program:
+    ; cerrar socket antes de salir
     push dword [sockfd]
     call close
     add esp, 4
-
     xor eax, eax
 
 cleanup:
+    ; restaurar stack y salir
     mov esp, ebp
     pop ebp
     ret

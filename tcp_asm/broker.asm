@@ -42,9 +42,9 @@ SECTION .bss
 
 SECTION .text
 
-; =========================
+
 ; FD_SET(fd, set)
-; =========================
+
 fd_set_add:
     ; eax = fd, ebx = set
     mov edx, eax
@@ -60,9 +60,9 @@ fd_set_add:
     or [ebx + edx], eax
     ret
 
-; =========================
+
 ; FD_CLR(fd, set)
-; =========================
+
 fd_set_remove:
     mov edx, eax
     shr edx, 5
@@ -78,9 +78,9 @@ fd_set_remove:
     and [ebx + edx], eax
     ret
 
-; =========================
+
 ; FD_ISSET(fd, set)
-; =========================
+
 fd_is_set:
     mov edx, eax
     shr edx, 5
@@ -94,9 +94,9 @@ fd_is_set:
     and eax, 1
     ret
 
-; =========================
+
 ; add_subscriber(fd, topic)
-; =========================
+
 add_sub:
     push ebx
     push esi
@@ -131,9 +131,9 @@ add_sub:
     pop ebx
     ret
 
-; =========================
+
 ; publish(topic, message)
-; =========================
+
 publish:
     push ebx
     push esi
@@ -197,9 +197,9 @@ publish:
     pop ebx
     ret
 
-; =========================
+
 ; MAIN
-; =========================
+
 main:
     push ebp
     mov ebp, esp

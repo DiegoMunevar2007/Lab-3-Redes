@@ -9,11 +9,11 @@ section .data
 ; mensajes de consola
 mensaje_inicio  db "Broker UDP corriendo en puerto 5000",10,0
 mensaje_recibio   db "Llego: %s",10,0
-msg_newsub db "Nuevo sub al topic %s",10,0
-msg_pub    db "Se envio a %d clientes",10,0
+mensaje_nuevo_sub db "Nuevo sub al topic %s",10,0
+mensaje_enviado   db "Se envio a %d clientes",10,0
 
-fmt_sub db "SUB %49s",0
-fmt_pub db "PUB %49s %[^\n]",0
+plant_sub db "SUB %49s",0
+plant_pub db "PUB %49s %[^\n]",0
 strSUB  db "SUB",0
 strPUB  db "PUB",0
 
@@ -31,7 +31,7 @@ client_len  resd 1
 ; cada sub ocupa 70 bytes:
 ; 16 bytes sockaddr + 50 topic + padding
 subs        resb 7000
-sub_count   resd 1
+count_sub   resd 1
 
 section .text
 
@@ -119,13 +119,13 @@ handle_sub:
 
 ; sacar topic
     push topic
-    push fmt_sub
+    push plant_sub
     push buffer
     call sscanf
     add esp,12
 
 ; si hay mas de 100 subs ignoramos
-    mov eax,[sub_count]
+    mov eax,[count_sub]
     cmp eax,100
     jge ciclo_main
 
@@ -149,10 +149,10 @@ copiar_sock:
     call strcpy
     add esp,8
 
-    inc dword [sub_count]
+    inc dword [count_sub]
 
     push topic
-    push msg_newsub
+    push mensaje_nuevo_sub
     call printf
     add esp,8
 
@@ -164,12 +164,12 @@ handle_pub:
 ; obtener topic y mensaje
     push message
     push topic
-    push fmt_pub
+    push plant_pub
     push buffer
     call sscanf
     add esp,16
 
-    mov ecx,[sub_count]
+    mov ecx,[count_sub]
     xor ebx,ebx
     xor esi,esi
 
@@ -229,7 +229,7 @@ siguiente:
 
 fin_pub:
     push ebx
-    push msg_pub
+    push mensaje_enviado
     call printf
     add esp,8
 

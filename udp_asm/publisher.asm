@@ -4,8 +4,8 @@ extern printf, scanf, socket, sendto, htons, inet_addr, sprintf
 section .data
 prompt_topic db "Topic: ",0
 prompt_msg   db "Mensaje: ",0
-fmt_str db "%s",0
-fmt_pub db "PUB %s %s",0
+plant_str db "%s",0
+plant_pub db "PUB %s %s",0
 ip db "127.0.0.1",0
 
 section .bss
@@ -42,13 +42,13 @@ main:
     add esp,4
     mov [sockaddr+4],eax
 
-; pedir topic solo una vez
+; pedir topic 
     push prompt_topic
     call printf
     add esp,4
 
     push topic
-    push fmt_str
+    push plant_str
     call scanf
     add esp,8
 
@@ -61,14 +61,14 @@ loop_envio:
     add esp,4
 
     push msg
-    push fmt_str
+    push plant_str
     call scanf
     add esp,8
 
 ; armar string final -> "PUB topic mensaje"
     push msg
     push topic
-    push fmt_pub
+    push plant_pub
     push finalmsg
     call sprintf
     add esp,16

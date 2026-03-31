@@ -3,13 +3,14 @@ extern printf, scanf, socket, connect, sendto, recvfrom, sprintf, htons, inet_ad
 
 section .data
 prompt_topic db "Topic a suscribirse: ",0
-msg_subscribed db "Suscrito a %s",10,0
-msg_received db "Llego mensaje: %s",10,0
-fmt_str db "%s",0
-fmt_sub db "SUB %s",0
+mensaje_sub db "Suscrito a %s",10,0
+mensaje_recibido db "Llego mensaje: %s",10,0
+plant_str db "%s",0
+plant_sub db "SUB %s",0
 ip db "127.0.0.1",0
 
 section .bss
+
 sockfd resd 1
 topic resb 64
 submsg resb 64
@@ -56,13 +57,13 @@ main:
     add esp,4
 
     push topic
-    push fmt_str
+    push plant_str
     call scanf
     add esp,8
 
 ; crear mensaje "SUB topic"
     push topic
-    push fmt_sub
+    push plant_sub
     push submsg
     call sprintf
     add esp,12
@@ -78,7 +79,7 @@ main:
     add esp,24
 
     push topic
-    push msg_subscribed
+    push mensaje_sub
     call printf
     add esp,8
 
@@ -104,7 +105,7 @@ recv_loop:
     mov byte [buffer+ebx],0
 
     push buffer
-    push msg_received
+    push mensaje_recibido
     call printf
     add esp,8
 

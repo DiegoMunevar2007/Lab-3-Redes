@@ -14,6 +14,7 @@ extern sprintf
 extern exit
 
 SECTION .data
+    ; mensajes que se imprimen en consola
     msg_socket_error db "Error creando socket", 10, 0
     msg_connect_error db "Error : Connect Failed", 10, 0
     msg_prompt db "Ingrese topic a suscribirse: ", 0
@@ -24,9 +25,11 @@ SECTION .data
     fmt_str db "%s", 0
     fmt_sub db "SUB %s", 0
 
+    ; ip del servidor
     ip_str db "127.0.0.1", 0
 
 SECTION .bss
+    ; variables sin inicializar
     sockfd resd 1
     topic resb 50
     buffer resb 1024
@@ -39,7 +42,7 @@ main:
     push ebp
     mov ebp, esp
 
-    ; memset(server_addr, 0, 16)
+    ; poner en 0 la estructura sockaddr (como memset)
     mov edi, server_addr
     mov ecx, 16
     xor eax, eax
@@ -60,7 +63,7 @@ main:
     add esp, 4
     mov [server_addr + 4], eax
 
-    ; socket(AF_INET, SOCK_STREAM, 0)
+    ; crear socket TCP -> socket(AF_INET, SOCK_STREAM, 0)
     push 0
     push 1
     push 2
@@ -71,7 +74,7 @@ main:
     cmp eax, 0
     jl socket_error
 
-    ; connect(sockfd, &server_addr, 16)
+    ; conectar al servidor
     push 16
     push server_addr
     push dword [sockfd]
@@ -81,31 +84,31 @@ main:
     cmp eax, 0
     jl connect_error
 
-    ; printf("Ingrese topic...")
+    ; pedir topic al usuario
     push msg_prompt
     call printf
     add esp, 4
 
-    ; scanf("%s", topic)
+    ; leer topic
     push topic
     push fmt_str
     call scanf
     add esp, 8
 
-    ; sprintf(sub_msg, "SUB %s", topic)
+    ; crear mensaje SUB con sprintf -> "SUB topic"
     push topic
     push fmt_sub
     push sub_msg
     call sprintf
     add esp, 12
 
-    ; strlen(sub_msg)
+    ; calcular longitud del mensaje SUB
     push sub_msg
     call strlen
     add esp, 4
     mov edx, eax
 
-    ; send(sockfd, sub_msg, len, 0)
+    ; enviar SUB al servidor
     push 0
     push edx
     push sub_msg
@@ -113,7 +116,7 @@ main:
     call send
     add esp, 16
 
-    ; printf("Suscrito a %s")
+    ; confirmar suscripción
     push topic
     push msg_subscribed
     call printf
@@ -121,7 +124,7 @@ main:
 
 recv_loop:
 
-    ; recv(sockfd, buffer, 1023, 0)
+    ; esperar mensajes del servidor
     push 0
     push 1023
     push buffer
@@ -129,15 +132,16 @@ recv_loop:
     call recv
     add esp, 16
 
+    ; si recv devuelve <=0 hubo error o se cerró conexión
     cmp eax, 0
     jle recv_error
 
-    ; buffer[n] = '\0'
+    ; poner terminador de string al final del mensaje recibido
     mov ebx, buffer
     add ebx, eax
     mov byte [ebx], 0
 
-    ; printf("Mensaje recibido: %s")
+    ; imprimir mensaje recibido
     push buffer
     push msg_recv
     call printf
@@ -146,12 +150,14 @@ recv_loop:
     jmp recv_loop
 
 recv_error:
+    ; mensaje de error de conexión
     push msg_error
     call printf
     add esp, 4
     jmp cleanup
 
 socket_error:
+    ; error creando socket
     push msg_socket_error
     call printf
     add esp, 4
@@ -159,6 +165,7 @@ socket_error:
     jmp cleanup
 
 connect_error:
+    ; error conectando al servidor
     push msg_connect_error
     call printf
     add esp, 4
@@ -166,6 +173,7 @@ connect_error:
     call exit
 
 cleanup:
+    ; cerrar socket antes de salir
     push dword [sockfd]
     call close
     add esp, 4
