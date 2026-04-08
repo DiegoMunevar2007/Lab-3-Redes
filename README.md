@@ -155,3 +155,6 @@ gcc -m32 output/subscriber.o -o output/subscriber
 - En `publisher`, publicar en el mismo topic (`demo`) un mensaje (por ejemplo: `hola`).
 - Verificar que el `subscriber` reciba el mensaje.
 - Agregar más `subscriber` y repetir el proceso para verificar que todos reciban el mensaje publicado ;)
+
+# QUIC
+Próximamente en clase :) 
